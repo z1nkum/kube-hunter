@@ -1,4 +1,5 @@
 import requests
+import json
 
 from ...core.types import Hunter
 from ...core.events import handler
@@ -19,6 +20,9 @@ class ApiServerDiscovery(Hunter):
 
     def execute(self):
         main_request = requests.get("https://{}:{}".format(self.event.host, self.event.port), verify=False).text
-        if "code" in main_request:
+        try:
+            json.loads(main_request).get("code")
             self.event.role = "Master"
-        self.publish_event(ApiServer())
+            self.publish_event(ApiServer())
+        except:
+            pass
