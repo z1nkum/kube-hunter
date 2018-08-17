@@ -1,9 +1,11 @@
-import requests
 import json
 
-from ...core.types import Hunter
+import requests
+
 from ...core.events import handler
-from ...core.events.types import OpenPortEvent, Service, Event
+from ...core.events.types import Event, OpenPortEvent, Service
+from ...core.types import Hunter
+
 
 class ApiServer(Service, Event):
     """The API server is in charge of all operations on the cluster."""
