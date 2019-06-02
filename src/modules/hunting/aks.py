@@ -28,7 +28,7 @@ class AzureSpnHunter(Hunter):
     # getting a container that has access to the azure.json file
     def get_key_container(self):
         logging.debug("Passive Hunter is attempting to find container with access to azure.json file")
-        raw_pods = requests.get(self.base_url + "/pods", verify=False).text
+        raw_pods = requests.get(self.base_url + "/pods", verify=False, timeout=5).text
         if "items" in raw_pods:
             pods_data = json.loads(raw_pods)["items"]
             for pod_data in pods_data:
@@ -64,7 +64,7 @@ class ProveAzureSpnExposure(ActiveHunter):
             podID=container["pod"],
             containerName=container["name"]
         )
-        return requests.post(run_url, verify=False, params={'cmd': command}).text
+        return requests.post(run_url, verify=False, params={'cmd': command}, timeout=5).text
 
     def execute(self):
         raw_output = self.run("cat /etc/kubernetes/azure.json", container=self.event.container)

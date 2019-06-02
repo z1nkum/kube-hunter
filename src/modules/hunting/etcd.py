@@ -62,7 +62,7 @@ class EtcdRemoteAccessActive(ActiveHunter):
         }
         try:
             r = requests.post("{protocol}://{host}:{port}/v2/keys/message".format(host=self.event.host, port=2379,
-                                                                                  protocol=self.protocol), data=data)
+                                                                                  protocol=self.protocol), data=data, timeout=5)
             self.write_evidence = r.content if r.status_code == 200 and r.content != '' else False
             return self.write_evidence
         except requests.exceptions.ConnectionError:
@@ -91,7 +91,7 @@ class EtcdRemoteAccess(Hunter):
         try:
             r = requests.get(
                 "{protocol}://{host}:{port}/v2/keys".format(protocol=self.protocol, host=self.event.host, port=2379),
-                verify=False)
+                verify=False, timeout=5)
             self.keys_evidence = r.content if r.status_code == 200 and r.content != '' else False
             return self.keys_evidence
         except requests.exceptions.ConnectionError:
@@ -102,7 +102,7 @@ class EtcdRemoteAccess(Hunter):
         try:
             r = requests.get(
                 "{protocol}://{host}:{port}/version".format(protocol=self.protocol, host=self.event.host, port=2379),
-                verify=False)
+                verify=False, timeout=5)
             self.version_evidence = r.content if r.status_code == 200 and r.content != '' else False
             return self.version_evidence
         except requests.exceptions.ConnectionError:
@@ -111,7 +111,7 @@ class EtcdRemoteAccess(Hunter):
     def insecure_access(self):
         logging.debug(self.event.host + " Passive hunter is attempting to access etcd insecurely")
         try:
-            r = requests.get("http://{host}:{port}/version".format(host=self.event.host, port=2379), verify=False)
+            r = requests.get("http://{host}:{port}/version".format(host=self.event.host, port=2379), verify=False, timeout=5)
             return r.content if r.status_code == 200 and r.content != '' else False
         except requests.exceptions.ConnectionError:
             return False

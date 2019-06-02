@@ -24,7 +24,7 @@ class KubeDashboard(Discovery):
     @property
     def secure(self):
         logging.debug("Attempting to discover an Api server to access dashboard")
-        r = requests.get("http://{}:{}/api/v1/service/default".format(self.event.host, self.event.port))
+        r = requests.get("http://{}:{}/api/v1/service/default".format(self.event.host, self.event.port), timeout=5)
         if "listMeta" in r.text and len(json.loads(r.text)["errors"]) == 0:
             return False
         return True

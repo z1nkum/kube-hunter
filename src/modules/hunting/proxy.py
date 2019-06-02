@@ -46,7 +46,7 @@ class KubeProxy(Hunter):
 
     @property
     def namespaces(self):
-        resource_json = requests.get(self.api_url + "/namespaces").json()
+        resource_json = requests.get(self.api_url + "/namespaces", timeout=5).json()
         return self.extract_names(resource_json)
 
     @property
@@ -55,7 +55,7 @@ class KubeProxy(Hunter):
         services = dict()
         for namespace in self.namespaces:
             resource_path = "/namespaces/{ns}/services".format(ns=namespace)
-            resource_json = requests.get(self.api_url + resource_path).json()
+            resource_json = requests.get(self.api_url + resource_path, timeout=5).json()
             services[namespace] = self.extract_names(resource_json)
         logging.debug(services)
         return services
@@ -79,7 +79,7 @@ class ProveProxyExposed(ActiveHunter):
         version_metadata = json.loads(requests.get("http://{host}:{port}/version".format(
             host=self.event.host,
             port=self.event.port,
-        ), verify=False).text)
+        ), verify=False, timeout=5).text)
         if "buildDate" in version_metadata:
             self.event.evidence = "build date: {}".format(version_metadata["buildDate"])
 
@@ -95,6 +95,6 @@ class ProveK8sVersionDisclosure(ActiveHunter):
         version_metadata = json.loads(requests.get("http://{host}:{port}/version".format(
             host=self.event.host,
             port=self.event.port,
-        ), verify=False).text)
+        ), verify=False, timeout=5).text)
         if "gitVersion" in version_metadata:
             self.event.evidence = "version: {}".format(version_metadata["gitVersion"])

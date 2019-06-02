@@ -60,7 +60,7 @@ class HostDiscoveryHelpers:
             # any encryption, we go with the verify=false option for the time being. At least
             # this prevents leaking internal IP addresses to passive eavesdropping.
             # TODO: find a more secure service to detect cloud IPs
-            metadata = requests.get("https://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host), verify=False).text
+            metadata = requests.get("https://www.azurespeed.com/api/region?ipOrUrl={ip}".format(ip=host), verify=False, timeout=5).text
         except requests.ConnectionError as e:
             logging.info("- unable to check cloud: {0}".format(e))
             return
@@ -112,7 +112,7 @@ class FromPodHostDiscovery(Discovery):
 
    # for pod scanning
     def traceroute_discovery(self):
-        external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+        external_ip = requests.get("http://canhazip.com", timeout=5).text # getting external ip, to determine if cloud cluster
         cloud = HostDiscoveryHelpers.get_cloud(external_ip)
         logging.getLogger("scapy.runtime").setLevel(logging.ERROR) # disables scapy's warnings
         from scapy.all import ICMP, IP, Ether, srp1
@@ -123,7 +123,7 @@ class FromPodHostDiscovery(Discovery):
     # quering azure's interface metadata api | works only from a pod
     def azure_metadata_discovery(self):
         logging.debug("From pod attempting to access azure's metadata")
-        machine_metadata = json.loads(requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}).text)
+        machine_metadata = json.loads(requests.get("http://169.254.169.254/metadata/instance?api-version=2017-08-01", headers={"Metadata":"true"}, timeout=5).text)
         address, subnet= "", ""
         subnets = list()
         for interface in machine_metadata["network"]["interface"]:
@@ -163,7 +163,7 @@ class HostDiscovery(Discovery):
     def scan_interfaces(self):
         try:
             logging.debug("HostDiscovery hunter attempting to get external IP address")
-            external_ip = requests.get("http://canhazip.com").text # getting external ip, to determine if cloud cluster
+            external_ip = requests.get("http://canhazip.com", timeout=5).text # getting external ip, to determine if cloud cluster
         except requests.ConnectionError as e:
             logging.debug("unable to determine local IP address: {0}".format(e))
             logging.info("~ default to 127.0.0.1")

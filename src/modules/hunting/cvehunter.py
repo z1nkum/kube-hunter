@@ -54,7 +54,7 @@ class IsVulnerableToCVEAttack(Hunter):
             logging.debug('Passive Hunter is attempting to access the API server version end point anonymously')
         try:
             res = requests.get("{path}/version".format(path=self.path),
-                               headers=self.headers, verify=False)
+                               headers=self.headers, verify=False, timeout=5)
             self.api_server_evidence = res.content
             resDict = ast.literal_eval(res.content)
             version = resDict["gitVersion"].split('.')

@@ -204,7 +204,7 @@ class AccessApiServer(Hunter):
         logging.debug('Passive Hunter is attempting to access the API at {host}:{port}'.format(host=self.event.host, 
             port=self.event.port))
         try:
-            r = requests.get("{path}/api".format(path=self.path), headers=self.headers, verify=False)
+            r = requests.get("{path}/api".format(path=self.path), headers=self.headers, verify=False, timeout=5)
             if r.status_code == 200 and r.content != '':
                 return r.content
         except requests.exceptions.ConnectionError:
@@ -214,7 +214,7 @@ class AccessApiServer(Hunter):
     def get_items(self, path):
         try: 
             items = []
-            r = requests.get(path, headers=self.headers, verify=False)
+            r = requests.get(path, headers=self.headers, verify=False, timeout=5)
             if r.status_code ==200:
                 resp = json.loads(r.content)
                 for item in resp["items"]:
@@ -230,10 +230,10 @@ class AccessApiServer(Hunter):
         try:
             if namespace is None:
                 r = requests.get("{path}/api/v1/pods".format(path=self.path),
-                               headers=self.headers, verify=False)
+                               headers=self.headers, verify=False, timeout=5)
             else:
                 r = requests.get("{path}/api/v1/namespaces/{namespace}/pods".format(path=self.path),
-                               headers=self.headers, verify=False)
+                               headers=self.headers, verify=False, timeout=5)
             if r.status_code == 200:
                 resp = json.loads(r.content)
                 for item in resp["items"]:
@@ -304,7 +304,7 @@ class AccessApiServerActive(ActiveHunter):
             headers['Authorization'] = 'Bearer {token}'.format(token=self.event.auth_token)
 
         try:
-            res = requests.post(path.format(name=name), verify=False, data=data, headers=headers)
+            res = requests.post(path.format(name=name), verify=False, data=data, headers=headers, timeout=5)
             if res.status_code in [200, 201, 202]: 
                 parsed_content = json.loads(res.content)
                 return parsed_content['metadata']['name']
@@ -319,7 +319,7 @@ class AccessApiServerActive(ActiveHunter):
         if self.event.auth_token:
             headers['Authorization'] = 'Bearer {token}'.format(token=self.event.auth_token)
         try:
-            res = requests.patch(path, headers=headers, verify=False, data=data)
+            res = requests.patch(path, headers=headers, verify=False, data=data, timeout=5)
             if res.status_code not in [200, 201, 202]: 
                 return None
             parsed_content = json.loads(res.content)
@@ -334,7 +334,7 @@ class AccessApiServerActive(ActiveHunter):
         if self.event.auth_token:
             headers['Authorization'] = 'Bearer {token}'.format(token=self.event.auth_token)
         try:
-            res = requests.delete(path, headers=headers, verify=False)
+            res = requests.delete(path, headers=headers, verify=False, timeout=5)
             if res.status_code in [200, 201, 202]: 
                 parsed_content = json.loads(res.content)
                 return parsed_content['metadata']['deletionTimestamp']

@@ -40,7 +40,7 @@ class KubeletDiscovery(Discovery):
     def get_read_only_access(self):
         logging.debug(self.event.host)
         logging.debug("Passive hunter is attempting to get kubelet read access")
-        r = requests.get("http://{host}:{port}/pods".format(host=self.event.host, port=self.event.port))
+        r = requests.get("http://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), timeout=5)
         if r.status_code == 200:
             self.publish_event(ReadOnlyKubeletEvent())
 
@@ -57,7 +57,7 @@ class KubeletDiscovery(Discovery):
     def ping_kubelet(self):
         logging.debug("Attempting to get pod info from kubelet")
         try:
-            return requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).status_code
+            return requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False, timeout=5).status_code
         except Exception as ex:
             logging.debug("Failed pinging https port 10250 on {} : {}".format(self.event.host, ex.message))
 

@@ -111,7 +111,7 @@ class ReadOnlyKubeletPortHunter(Hunter):
 
     def get_k8s_version(self):
         logging.debug("Passive hunter is attempting to find kubernetes version")
-        metrics = requests.get(self.path + "metrics").text
+        metrics = requests.get(self.path + "metrics", timeout=5).text
         for line in metrics.split("\n"):
             if line.startswith("kubernetes_build_info"):
                 for info in line[line.find('{') + 1: line.find('}')].split(','):
@@ -132,12 +132,12 @@ class ReadOnlyKubeletPortHunter(Hunter):
     
     def get_pods_endpoint(self):
         logging.debug("Attempting to find pods endpoints")
-        response = requests.get(self.path + "pods")
+        response = requests.get(self.path + "pods", timeout=5)
         if "items" in response.text:
             return json.loads(response.text)
 
     def check_healthz_endpoint(self):
-        r = requests.get(self.path + "healthz", verify=False)
+        r = requests.get(self.path + "healthz", verify=False, timeout=5)
         return r.text if r.status_code == 200 else False
 
     def execute(self):
@@ -221,7 +221,7 @@ class SecureKubeletPortHunter(Hunter):
                 containerName=self.pod["container"],
                 cmd = ""
             )
-            status_code = requests.post(run_url, allow_redirects=False, verify=False).status_code 
+            status_code = requests.post(run_url, allow_redirects=False, verify=False, timeout=5).status_code
             return (status_code != 404 and status_code != 401)
 
         # returns list of currently running pods
@@ -257,7 +257,7 @@ class SecureKubeletPortHunter(Hunter):
             return json.loads(response.text)
 
     def check_healthz_endpoint(self):
-        r = requests.get(self.path + "healthz", verify=False)
+        r = requests.get(self.path + "healthz", verify=False, timeout=5)
         return r.text if r.status_code == 200 else False
 
     def execute(self):
@@ -330,10 +330,10 @@ class ProveRunHandler(ActiveHunter):
             podID=container["pod"],
             containerName=container["name"]
         )
-        return requests.post(run_url, verify=False, params={'cmd': command}).text
+        return requests.post(run_url, verify=False, params={'cmd': command}, timeout=5).text
 
     def execute(self):
-        pods_raw = requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False).text
+        pods_raw = requests.get("https://{host}:{port}/pods".format(host=self.event.host, port=self.event.port), verify=False, timeout=5).text
         if "items" in pods_raw:
             pods_data = json.loads(pods_raw)['items']
             for pod_data in pods_data:
@@ -359,7 +359,7 @@ class ProveContainerLogsHandler(ActiveHunter):
         self.base_url = "{protocol}://{host}:{port}".format(protocol=protocol, host=self.event.host, port=self.event.port)
 
     def execute(self):
-        pods_raw = requests.get(self.base_url + "/pods", verify=False).text
+        pods_raw = requests.get(self.base_url + "/pods", verify=False, timeout=5).text
         if "items" in pods_raw:
             pods_data = json.loads(pods_raw)['items']
             for pod_data in pods_data:
@@ -369,7 +369,7 @@ class ProveContainerLogsHandler(ActiveHunter):
                         podNamespace=pod_data["metadata"]["namespace"],
                         podID=pod_data["metadata"]["name"],
                         containerName=container_data["name"]
-                    ), verify=False)
+                    ), verify=False, timeout=5)
                     if output.status_code == 200 and output.text:
                         self.event.evidence = "{}: {}".format(
                             container_data["name"],
